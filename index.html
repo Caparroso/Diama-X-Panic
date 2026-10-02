@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050706" />
+    <meta
+      name="description"
+      content="Experiencia 3D interactiva de Diama X Panic bajo iluminación nocturna."
+    />
+    <title>Diama X Panic</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050706'/%3E%3Cpath d='M16 17h15c11 0 18 5 18 15s-7 15-18 15H16zm10 8v14h5c5 0 8-2 8-7s-3-7-8-7z' fill='%2378ff68'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./styles.css?v=7" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-lockup" aria-label="Diama X Panic">
+          <span class="diama-logo-crop"><img src="./assets/branding/diama-logo.png" alt="Diama" /></span>
+          <span class="brand-x">×</span>
+          <span class="panic-logo-crop panic-logo-header"><img src="./assets/branding/panic-logo.svg" alt="Panic.exe" /></span>
+        </div>
+        <span class="sr-only" id="statusText" aria-live="polite">Cargando escena</span>
+      </header>
+
+      <section class="viewer" aria-label="Visor interactivo de modelos 3D">
+        <div class="atmosphere" aria-hidden="true">
+          <div class="room-back-wall"></div>
+          <div class="room-side room-side-left"></div>
+          <div class="room-side room-side-right"></div>
+          <div class="room-floor"></div>
+          <div class="light-column light-column-a"></div>
+          <div class="light-column light-column-b"></div>
+          <div class="floor-grid"></div>
+          <div class="model-shadow"></div>
+          <div class="floor-ring"><span></span></div>
+        </div>
+
+        <canvas id="sceneCanvas" aria-label="Modelo 3D. Arrastra para girar la cámara y usa la rueda para acercarte."></canvas>
+
+        <div class="scanlines" aria-hidden="true"></div>
+        <div class="vignette" aria-hidden="true"></div>
+
+        <div class="loading-state" id="loadingState">
+          <span class="loader-ring"></span>
+          <p id="loadingLabel">Preparando a Kameo</p>
+        </div>
+
+        <div class="error-state" id="errorState" hidden>
+          <strong>No se pudo abrir el modelo</strong>
+          <button type="button" id="retryButton">Reintentar</button>
+        </div>
+
+        <aside class="model-index" aria-label="Seleccionar modelo">
+          <div class="model-buttons" role="list">
+            <button class="model-button model-select-button is-active" type="button" data-model="kameo" aria-label="Mostrar modelo 1" aria-pressed="true">
+              <span class="model-number">01</span>
+            </button>
+            <button class="model-button model-select-button" type="button" data-model="kalus" aria-label="Mostrar modelo 2" aria-pressed="false">
+              <span class="model-number">02</span>
+            </button>
+            <button class="model-button model-select-button" type="button" data-model="dragon" aria-label="Mostrar modelo 3" aria-pressed="false">
+              <span class="model-number">03</span>
+            </button>
+          </div>
+
+          <div class="brand-models" aria-label="Modelos de Diama y Panic">
+            <button class="brand-model-button model-select-button" type="button" data-model="diama" aria-label="Mostrar modelo 3D de Diama" aria-pressed="false">
+              <span class="brand-logo-crop"><img src="./assets/branding/diama-logo.png" alt="" /></span>
+            </button>
+            <button class="brand-model-button panic-model-button" type="button" disabled aria-label="Modelo de Panic próximamente">
+              <span class="panic-logo-crop panic-logo-button"><img src="./assets/branding/panic-logo.svg" alt="" /></span>
+              <small>PRÓXIMO</small>
+            </button>
+          </div>
+        </aside>
+
+        <div class="sr-only" aria-live="polite">
+          <span id="modelCode">01</span>
+          <span id="modelName">Kameo</span>
+          <span id="modelRole">Elemental warrior</span>
+        </div>
+
+        <div class="scene-tools">
+          <div class="light-dock" aria-label="Cambiar color de la luz">
+            <span class="light-dock-label">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M8.7 14.5A6 6 0 1 1 15.3 14.5C14.4 15.2 14 16 14 17h-4c0-1-.4-1.8-1.3-2.5Z"/></svg>
+              LUZ
+            </span>
+            <button class="swatch swatch-green is-active" type="button" data-color="#78ff68" aria-label="Luz verde" title="Luz verde" aria-pressed="true"></button>
+            <button class="swatch swatch-blue" type="button" data-color="#55c8ff" aria-label="Luz azul" title="Luz azul" aria-pressed="false"></button>
+            <button class="swatch swatch-pink" type="button" data-color="#ff4fd8" aria-label="Luz magenta" title="Luz magenta" aria-pressed="false"></button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js?v=7"></script>
+  </body>
+</html>
