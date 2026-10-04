@@ -34,6 +34,18 @@ const MODEL_LIBRARY = {
       { obj: './assets/models/dragon/dragon_cheaper.obj', mtl: './assets/models/dragon/dragon_cheaper.mtl' },
     ],
   },
+  moon: {
+    name: 'Moon',
+    role: "Majora's Mask",
+    code: '04',
+    glb: './assets/models/moon/majoras-mask-moon.glb',
+    fit: 'width',
+    targetSize: 3.18,
+    centerY: 1.76,
+    startAngle: 325,
+    cameraDistance: 1.14,
+    mobileCameraDistance: 1.32,
+  },
   diama: {
     name: 'Diama',
     role: '3D identity',
@@ -360,6 +372,53 @@ function parseGlb(arrayBuffer) {
 
   if (!document || !binaryChunk) throw new Error('Incomplete GLB file');
 
+  const identity = new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+  ]);
+
+  function nodeMatrix(node) {
+    if (node.matrix) return new Float32Array(node.matrix);
+    const [x, y, z, w] = node.rotation || [0, 0, 0, 1];
+    const [sx, sy, sz] = node.scale || [1, 1, 1];
+    const [tx, ty, tz] = node.translation || [0, 0, 0];
+    return new Float32Array([
+      (1 - 2 * y * y - 2 * z * z) * sx,
+      (2 * x * y + 2 * z * w) * sx,
+      (2 * x * z - 2 * y * w) * sx,
+      0,
+      (2 * x * y - 2 * z * w) * sy,
+      (1 - 2 * x * x - 2 * z * z) * sy,
+      (2 * y * z + 2 * x * w) * sy,
+      0,
+      (2 * x * z + 2 * y * w) * sz,
+      (2 * y * z - 2 * x * w) * sz,
+      (1 - 2 * x * x - 2 * y * y) * sz,
+      0,
+      tx, ty, tz, 1,
+    ]);
+  }
+
+  function transformPosition(position, matrix) {
+    const [x, y, z] = position;
+    return [
+      matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12],
+      matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13],
+      matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14],
+    ];
+  }
+
+  function transformNormal(normal, matrix) {
+    const [x, y, z] = normal;
+    return normalize3([
+      matrix[0] * x + matrix[4] * y + matrix[8] * z,
+      matrix[1] * x + matrix[5] * y + matrix[9] * z,
+      matrix[2] * x + matrix[6] * y + matrix[10] * z,
+    ]);
+  }
+
   function readAccessor(index) {
     const accessor = document.accessors[index];
     const bufferView = document.bufferViews[accessor.bufferView];
@@ -385,25 +444,83 @@ function parseGlb(arrayBuffer) {
     return { values, components };
   }
 
+  function imageSource(textureInfo) {
+    if (!textureInfo) return null;
+    const texture = document.textures?.[textureInfo.index];
+    const image = texture && document.images?.[texture.source];
+    if (!image) return null;
+    if (image.uri) return image.uri;
+    if (image.bufferView === undefined) return null;
+    const imageView = document.bufferViews[image.bufferView];
+    const start = imageView.byteOffset || 0;
+    const bytes = binaryChunk.slice(start, start + imageView.byteLength);
+    return URL.createObjectURL(new Blob([bytes], { type: image.mimeType || 'image/png' }));
+  }
+
+  function materialFor(primitive) {
+    const source = document.materials?.[primitive.material] || {};
+    const pbr = source.pbrMetallicRoughness || {};
+    const baseColor = pbr.baseColorFactor || [1, 1, 1, 1];
+    return {
+      color: baseColor.slice(0, 3),
+      opacity: source.alphaMode === 'BLEND' ? baseColor[3] : 1,
+      map: imageSource(pbr.baseColorTexture || source.emissiveTexture),
+      flipY: false,
+    };
+  }
+
+  const meshInstances = [];
+  function visitNode(nodeIndex, parentMatrix) {
+    const node = document.nodes?.[nodeIndex];
+    if (!node) return;
+    const worldMatrix = multiply4(parentMatrix, nodeMatrix(node));
+    if (node.mesh !== undefined) meshInstances.push({ meshIndex: node.mesh, matrix: worldMatrix });
+    for (const child of node.children || []) visitNode(child, worldMatrix);
+  }
+
+  const activeScene = document.scenes?.[document.scene || 0];
+  for (const root of activeScene?.nodes || []) visitNode(root, identity);
+  if (!meshInstances.length) {
+    (document.meshes || []).forEach((mesh, meshIndex) => meshInstances.push({ meshIndex, matrix: identity }));
+  }
+
   const groups = [];
-  for (const mesh of document.meshes || []) {
+  for (const instance of meshInstances) {
+    const mesh = document.meshes[instance.meshIndex];
     for (const primitive of mesh.primitives || []) {
       if (primitive.mode !== undefined && primitive.mode !== 4) continue;
       const positionAccessor = readAccessor(primitive.attributes.POSITION);
+      const normalAccessor = primitive.attributes.NORMAL === undefined ? null : readAccessor(primitive.attributes.NORMAL);
+      const uvAccessor = primitive.attributes.TEXCOORD_0 === undefined ? null : readAccessor(primitive.attributes.TEXCOORD_0);
       const indices = primitive.indices === undefined
         ? Array.from({ length: positionAccessor.values.length / 3 }, (_, index) => index)
         : readAccessor(primitive.indices).values;
-      const group = { materialName: 'diama-metal', positions: [], normals: [], uvs: [] };
+      const group = {
+        materialName: document.materials?.[primitive.material]?.name || `glb-material-${primitive.material || 0}`,
+        material: materialFor(primitive),
+        positions: [],
+        normals: [],
+        uvs: [],
+      };
       for (let index = 0; index < indices.length; index += 3) {
-        const triangle = indices.slice(index, index + 3).map((vertexIndex) => {
+        const vertexIndices = indices.slice(index, index + 3);
+        const triangle = vertexIndices.map((vertexIndex) => {
           const startIndex = vertexIndex * positionAccessor.components;
-          return positionAccessor.values.slice(startIndex, startIndex + 3);
+          return transformPosition(positionAccessor.values.slice(startIndex, startIndex + 3), instance.matrix);
         });
-        const normal = triangleNormal(triangle[0], triangle[1], triangle[2]);
-        for (const position of triangle) {
+        const faceNormal = triangleNormal(triangle[0], triangle[1], triangle[2]);
+        for (let vertex = 0; vertex < triangle.length; vertex += 1) {
+          const vertexIndex = vertexIndices[vertex];
+          const position = triangle[vertex];
+          const normalStart = normalAccessor ? vertexIndex * normalAccessor.components : 0;
+          const uvStart = uvAccessor ? vertexIndex * uvAccessor.components : 0;
+          const normal = normalAccessor
+            ? transformNormal(normalAccessor.values.slice(normalStart, normalStart + 3), instance.matrix)
+            : faceNormal;
+          const uv = uvAccessor ? uvAccessor.values.slice(uvStart, uvStart + 2) : [0, 0];
           group.positions.push(...position);
           group.normals.push(...normal);
-          group.uvs.push(0, 0);
+          group.uvs.push(...uv);
         }
       }
       groups.push(group);
@@ -422,7 +539,7 @@ async function loadModel(key) {
       if (!response.ok) throw new Error(`Missing model files for ${key}`);
       rawGroups = parseGlb(await response.arrayBuffer()).map((group) => ({
         ...group,
-        material: { color: [0.82, 0.85, 0.88], opacity: 1 },
+        material: group.material || { color: [0.82, 0.85, 0.88], opacity: 1 },
         directory: new URL('.', new URL(definition.glb, location.href)),
       }));
     } else {
@@ -443,8 +560,8 @@ async function loadModel(key) {
     for (const group of rawGroups) {
       const material = group.material;
       const [mapTexture, alphaTexture] = await Promise.all([
-        material.map ? loadTexture(new URL(material.map, group.directory).href) : null,
-        material.alphaMap ? loadTexture(new URL(material.alphaMap, group.directory).href) : null,
+        material.map ? loadTexture(new URL(material.map, group.directory).href, material.flipY !== false) : null,
+        material.alphaMap ? loadTexture(new URL(material.alphaMap, group.directory).href, material.flipY !== false) : null,
       ]);
       const visibleColor = material.map ? [1, 1, 1] : material.color;
       gpuGroups.push(createGeometryGroup(group, {
@@ -513,8 +630,9 @@ function bindAttribute(location, values, size) {
   gl.vertexAttribPointer(location, size, gl.FLOAT, false, 0, 0);
 }
 
-function loadTexture(url) {
-  if (textureCache.has(url)) return textureCache.get(url);
+function loadTexture(url, flipY = true) {
+  const cacheKey = `${url}::${flipY}`;
+  if (textureCache.has(cacheKey)) return textureCache.get(cacheKey);
   const promise = new Promise((resolve) => {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -522,7 +640,7 @@ function loadTexture(url) {
     const image = new Image();
     image.onload = () => {
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -534,7 +652,7 @@ function loadTexture(url) {
     image.onerror = () => resolve(texture);
     image.src = url;
   });
-  textureCache.set(url, promise);
+  textureCache.set(cacheKey, promise);
   return promise;
 }
 
@@ -560,7 +678,7 @@ async function switchModel(key) {
     const model = await loadModel(key);
     if (state.activeKey !== key) return;
     state.activeModel = model;
-    state.angle = 0;
+    state.angle = definition.startAngle || 0;
     statusText.textContent = `${definition.name.toUpperCase()} // EN LÍNEA`;
     canvas.classList.remove('is-switching');
     loadingState.classList.add('is-hidden');
