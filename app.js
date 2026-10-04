@@ -43,8 +43,8 @@ const MODEL_LIBRARY = {
     targetSize: 3.18,
     centerY: 1.76,
     startAngle: 325,
-    cameraDistance: 1.14,
-    mobileCameraDistance: 1.32,
+    cameraDistance: 1.4,
+    mobileCameraDistance: 1.58,
   },
   diama: {
     name: 'Diama',
@@ -60,7 +60,7 @@ const MODEL_LIBRARY = {
 };
 
 const state = {
-  activeKey: 'kameo',
+  activeKey: 'moon',
   activeModel: null,
   angle: 0,
   accent: '#78ff68',
@@ -930,5 +930,5 @@ function rotationYTranslation(angle, verticalOffset) {
   ]);
 }
 
-switchModel('kameo');
+switchModel('moon');
 requestAnimationFrame(render);
