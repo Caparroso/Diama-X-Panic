@@ -2,38 +2,34 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#050706" />
-    <meta
-      name="description"
-      content="Experiencia 3D interactiva de Diama X Panic bajo iluminación nocturna."
-    />
-    <meta property="og:title" content="Diama X Panic Registro" />
-    <meta property="og:description" content="Experiencia 3D interactiva de Diama X Panic bajo iluminación nocturna." />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#4e88aa" />
+    <meta name="description" content="Invitación interactiva 3D para Diama X Panic en Querétaro." />
+    <meta property="og:title" content="Diama X Panic" />
+    <meta property="og:description" content="Line up, registro y ubicación de Diama X Panic." />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Diama X Panic Registro" />
-    <meta name="twitter:description" content="Experiencia 3D interactiva de Diama X Panic bajo iluminación nocturna." />
-    <title>Diama X Panic Registro</title>
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050706'/%3E%3Cpath d='M16 17h15c11 0 18 5 18 15s-7 15-18 15H16zm10 8v14h5c5 0 8-2 8-7s-3-7-8-7z' fill='%2378ff68'/%3E%3C/svg%3E"
-    />
-    <link rel="stylesheet" href="./styles.css?v=11" />
+    <title>Diama X Panic — Invitación</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070a0c'/%3E%3Cpath d='M16 17h15c11 0 18 5 18 15s-7 15-18 15H16zm10 8v14h5c5 0 8-2 8-7s-3-7-8-7z' fill='%236fb0d4'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css?v=4" />
   </head>
   <body>
-    <main class="app-shell">
+    <main class="app-shell" id="appShell">
       <header class="topbar">
-        <div class="brand-lockup" aria-label="Diama X Panic">
+        <a class="brand-lockup" href="#lineup" data-view-target="lineup" aria-label="Diama X Panic — abrir line up">
           <span class="diama-logo-crop"><img src="./assets/branding/diama-logo.png" alt="Diama" /></span>
           <span class="brand-x">×</span>
           <span class="panic-logo-crop panic-logo-header"><img src="./assets/branding/panic-logo.svg" alt="Panic.exe" /></span>
-        </div>
+        </a>
+
+        <nav class="primary-nav" aria-label="Secciones de la invitación">
+          <button class="nav-tab is-active" type="button" data-view-target="lineup" aria-selected="true"><span>01</span>LINE UP</button>
+          <button class="nav-tab" type="button" data-view-target="register" aria-selected="false"><span>02</span>REGISTRO</button>
+          <button class="nav-tab" type="button" data-view-target="location" aria-selected="false"><span>03</span>UBICACIÓN</button>
+        </nav>
         <span class="sr-only" id="statusText" aria-live="polite">Cargando escena</span>
       </header>
 
-      <section class="viewer" aria-label="Visor interactivo de modelos 3D">
+      <section class="viewer" aria-label="Escena 3D de Diama X Panic">
         <div class="atmosphere" aria-hidden="true">
           <div class="room-back-wall"></div>
           <div class="room-side room-side-left"></div>
@@ -46,8 +42,7 @@
           <div class="floor-ring"><span></span></div>
         </div>
 
-        <canvas id="sceneCanvas" aria-label="Modelo 3D. Arrastra para girar la cámara y usa la rueda para acercarte."></canvas>
-
+        <canvas id="sceneCanvas" aria-label="Modelo 3D rotatorio. Arrastra para cambiar el ángulo y usa la rueda para acercarte."></canvas>
         <div class="scanlines" aria-hidden="true"></div>
         <div class="vignette" aria-hidden="true"></div>
 
@@ -55,59 +50,110 @@
           <span class="loader-ring"></span>
           <p id="loadingLabel">Preparando a Moon</p>
         </div>
-
         <div class="error-state" id="errorState" hidden>
           <strong>No se pudo abrir el modelo</strong>
           <button type="button" id="retryButton">Reintentar</button>
         </div>
 
-        <aside class="model-index" aria-label="Seleccionar modelo">
+        <aside class="model-index" aria-label="Modelos 3D">
           <div class="model-buttons" role="list">
-            <button class="model-button model-select-button" type="button" data-model="kameo" aria-label="Mostrar modelo 1" aria-pressed="false">
-              <span class="model-number">01</span>
-            </button>
-            <button class="model-button model-select-button" type="button" data-model="kalus" aria-label="Mostrar modelo 2" aria-pressed="false">
-              <span class="model-number">02</span>
-            </button>
-            <button class="model-button model-select-button" type="button" data-model="dragon" aria-label="Mostrar modelo 3" aria-pressed="false">
-              <span class="model-number">03</span>
-            </button>
-            <button class="model-button model-select-button is-active" type="button" data-model="moon" aria-label="Mostrar modelo 4: Luna de Majora's Mask" aria-pressed="true">
-              <span class="model-number">04</span>
-            </button>
-          </div>
-
-          <div class="brand-models" aria-label="Modelos de Diama y Panic">
-            <button class="brand-model-button model-select-button" type="button" data-model="diama" aria-label="Mostrar modelo 3D de Diama" aria-pressed="false">
-              <span class="brand-logo-crop"><img src="./assets/branding/diama-logo.png" alt="" /></span>
-            </button>
-            <button class="brand-model-button panic-model-button" type="button" disabled aria-label="Modelo de Panic próximamente">
-              <span class="panic-logo-crop panic-logo-button"><img src="./assets/branding/panic-logo.svg" alt="" /></span>
-              <small></small>
-            </button>
+            <button class="model-button model-select-button" type="button" data-model="kameo" aria-label="Mostrar Kameo" aria-pressed="false"><span>01</span></button>
+            <button class="model-button model-select-button" type="button" data-model="kalus" aria-label="Mostrar Kalus" aria-pressed="false"><span>02</span></button>
+            <button class="model-button model-select-button" type="button" data-model="dragon" aria-label="Mostrar Dragon" aria-pressed="false"><span>03</span></button>
+            <button class="model-button model-select-button is-active" type="button" data-model="moon" aria-label="Mostrar Luna" aria-pressed="true"><span>04</span></button>
+            <button class="model-button model-select-button" type="button" data-model="diama" aria-label="Mostrar Diama" aria-pressed="false"><span>D</span></button>
           </div>
         </aside>
 
         <div class="sr-only" aria-live="polite">
-          <span id="modelCode">04</span>
-          <span id="modelName">Moon</span>
-          <span id="modelRole">Majora's Mask</span>
+          <span id="modelCode">04</span><span id="modelName">Moon</span><span id="modelRole">Majora's Mask</span>
         </div>
 
-        <div class="scene-tools">
-          <div class="light-dock" aria-label="Cambiar color de la luz">
-            <span class="light-dock-label">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M8.7 14.5A6 6 0 1 1 15.3 14.5C14.4 15.2 14 16 14 17h-4c0-1-.4-1.8-1.3-2.5Z"/></svg>
-              LUZ
-            </span>
-            <button class="swatch swatch-green is-active" type="button" data-color="#78ff68" aria-label="Luz verde" title="Luz verde" aria-pressed="true"></button>
-            <button class="swatch swatch-blue" type="button" data-color="#55c8ff" aria-label="Luz azul" title="Luz azul" aria-pressed="false"></button>
-            <button class="swatch swatch-pink" type="button" data-color="#ff4fd8" aria-label="Luz magenta" title="Luz magenta" aria-pressed="false"></button>
-          </div>
+        <div class="scene-tools" aria-label="Color de iluminación">
+          <button class="swatch swatch-blue is-active" type="button" data-color="#6fb0d4" aria-label="Luz azul" aria-pressed="true"></button>
+          <button class="swatch swatch-green" type="button" data-color="#78ff68" aria-label="Luz verde" aria-pressed="false"></button>
+          <button class="swatch swatch-pink" type="button" data-color="#ff4fd8" aria-label="Luz magenta" aria-pressed="false"></button>
         </div>
       </section>
+
+      <div class="view-stage" id="viewStage">
+        <section class="view lineup-view is-active" data-view="lineup" aria-labelledby="lineupTitle">
+          <h1 class="sr-only" id="lineupTitle">Line up</h1>
+          <ol class="lineup-list" id="lineupList" aria-label="Line up"></ol>
+          <div class="visual-credit"><span>VISUALES POR</span><strong id="visualArtist">WROWERS</strong></div>
+          <div class="event-stamp">
+            <span id="eventDateLine">30 DE OCTUBRE 2026 · 8:00 PM</span>
+            <strong id="eventVenueLine">CASA JUGO · SANTIAGO DE QUERÉTARO</strong>
+          </div>
+        </section>
+
+        <section class="view register-view" data-view="register" aria-labelledby="registerTitle" hidden>
+          <div class="panel-heading">
+            <h2 id="registerTitle">REGISTRO</h2>
+            <p>Crea tu registro y guarda el boleto en tu dispositivo.</p>
+          </div>
+
+          <div class="register-console">
+            <form class="registration-form" id="registrationForm" novalidate>
+              <div class="console-title"><span>D</span><div><b>PERFIL DE ACCESO</b><small>NOMBRE + INSTAGRAM</small></div></div>
+              <div class="registration-price"><span>VALOR DEL REGISTRO</span><strong id="registrationPrice">$100 MXN</strong></div>
+              <label>NOMBRE<input id="guestName" name="name" autocomplete="name" maxlength="50" placeholder="TU NOMBRE" required /></label>
+              <label>INSTAGRAM<div class="input-prefix"><span>@</span><input id="guestInstagram" name="instagram" autocomplete="off" maxlength="40" placeholder="USUARIO" required /></div></label>
+              <p class="form-message" id="formMessage" role="alert"></p>
+              <button class="action action-primary" type="submit">CREAR MI BOLETO</button>
+              <small class="privacy-note">Tu registro identifica tu acceso a Diama X Panic.</small>
+            </form>
+
+            <article class="ticket-panel" id="ticketPanel" hidden>
+              <div class="ticket-art" aria-hidden="true"><img src="./assets/branding/ticket-art.png" alt="" /></div>
+              <div class="ticket-data">
+                <header class="ticket-header"><b>DIAMA × PANIC</b><small>ACCESO DIGITAL · 30.10.26</small></header>
+                <div class="ticket-identity">
+                  <span>REGISTRO CONFIRMADO</span>
+                  <h3 id="ticketName">—</h3>
+                  <strong id="ticketInstagram">—</strong>
+                </div>
+                <dl class="ticket-meta">
+                  <div><dt>FECHA</dt><dd id="ticketDate">30 OCT 2026 · 8:00 PM</dd></div>
+                  <div><dt>LUGAR</dt><dd>CASA JUGO</dd></div>
+                  <div><dt>VALOR</dt><dd id="ticketPrice">$100 MXN</dd></div>
+                  <div class="token-row"><dt>TOKEN</dt><dd id="ticketFolio">—</dd></div>
+                </dl>
+                <footer class="ticket-footer">
+                  <div class="ticket-code" aria-hidden="true"></div>
+                  <small>TOMA UNA CAPTURA DE ESTA PANTALLA</small>
+                  <b class="ticket-admit">PRESENTA ESTA CAPTURA EN EL ACCESO</b>
+                </footer>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view location-view" data-view="location" aria-labelledby="locationTitle" hidden>
+          <h2 class="sr-only" id="locationTitle">Ubicación de Casa Jugo</h2>
+          <a class="haunted-threshold" id="mapsPortal" href="https://maps.app.goo.gl/2daM6YKggRxVhezH6" target="_blank" rel="noopener" aria-label="Abrir ubicación de Casa Jugo en Google Maps">
+            <div class="halloween-moon"><i></i><i></i><i></i></div>
+            <svg class="dead-branches" viewBox="0 0 700 700" preserveAspectRatio="none">
+              <path d="M18 685C72 578 79 475 68 370C63 319 83 286 115 249M78 437C37 392 25 348 22 302M84 382C134 334 146 278 151 229M112 257C81 207 83 159 98 112M126 263C177 236 202 201 221 154M682 689C632 578 625 479 638 373C644 322 623 286 592 250M629 438C670 393 681 350 686 304M621 384C572 337 560 280 556 231M595 259C626 211 626 162 612 115M580 265C530 239 504 204 486 158" />
+            </svg>
+            <svg class="bat-flight" viewBox="0 0 700 700">
+              <path d="M155 178c17-17 35-16 51 2 16-18 34-19 51-2-13-2-22 3-27 14-8-8-16-11-24-11s-16 3-24 11c-5-11-14-16-27-14Z" />
+              <path d="M496 132c12-12 25-11 36 2 11-13 24-14 36-2-9-2-15 2-19 10-6-6-11-8-17-8s-11 2-17 8c-4-8-10-12-19-10Z" />
+              <path d="M529 231c9-9 19-8 27 2 9-10 18-11 27-2-7-1-12 2-14 8-4-4-9-6-13-6s-8 2-12 6c-3-6-8-9-15-8Z" />
+            </svg>
+            <div class="portal-arch">
+              <div class="portal-core"><span>✦</span><b>CASA<br />JUGO</b><small>ABRIR UBICACIÓN</small></div>
+            </div>
+            <div class="fog-bands"><i></i><i></i><i></i></div>
+            <div class="graveyard"><i></i><i></i><i></i><i></i></div>
+          </a>
+        </section>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
     </main>
 
-    <script type="module" src="./app.js?v=11"></script>
+    <script src="./data.js?v=4"></script>
+    <script type="module" src="./app.js?v=4"></script>
   </body>
 </html>

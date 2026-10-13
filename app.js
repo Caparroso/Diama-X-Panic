@@ -6,6 +6,7 @@ const statusText = document.querySelector('#statusText');
 const modelName = document.querySelector('#modelName');
 const modelRole = document.querySelector('#modelRole');
 const modelCode = document.querySelector('#modelCode');
+const pageData = window.DIAMA_PANIC_DATA || {};
 
 const MODEL_LIBRARY = {
   kameo: {
@@ -63,7 +64,7 @@ const state = {
   activeKey: 'moon',
   activeModel: null,
   angle: 0,
-  accent: '#78ff68',
+  accent: '#6fb0d4',
   camera: { yaw: 0.18, pitch: 0.08, radius: 6.1 },
   pointer: null,
   lastTime: performance.now(),
@@ -816,7 +817,10 @@ function updateAccent(hex) {
 }
 
 document.querySelectorAll('.model-select-button').forEach((button) => {
-  button.addEventListener('click', () => switchModel(button.dataset.model));
+  button.addEventListener('click', () => {
+    switchModel(button.dataset.model);
+    restartModelCycle(button.dataset.model);
+  });
 });
 
 document.querySelectorAll('.swatch').forEach((button) => {
@@ -851,10 +855,11 @@ canvas.addEventListener('wheel', (event) => {
 }, { passive: false });
 
 window.addEventListener('keydown', (event) => {
-  if (event.key === '1') switchModel('kameo');
-  if (event.key === '2') switchModel('kalus');
-  if (event.key === '3') switchModel('dragon');
-  if (event.key === '4') switchModel('diama');
+  if (event.key === '1') { switchModel('kameo'); restartModelCycle('kameo'); }
+  if (event.key === '2') { switchModel('kalus'); restartModelCycle('kalus'); }
+  if (event.key === '3') { switchModel('dragon'); restartModelCycle('dragon'); }
+  if (event.key === '4') { switchModel('moon'); restartModelCycle('moon'); }
+  if (event.key === '5') { switchModel('diama'); restartModelCycle('diama'); }
 });
 
 function hexToRgb(hex) {
@@ -930,5 +935,167 @@ function rotationYTranslation(angle, verticalOffset) {
   ]);
 }
 
+const STORAGE_KEY = 'diama-panic-registration-v5';
+let autoCycleTimer = null;
+let cycleIndex = 0;
+let toastTimer = null;
+let guestProfile = readProfile();
+
+function escapeHTML(value = '') {
+  return String(value).replace(/[&<>'"]/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;',
+  })[character]);
+}
+
+function hydrateInvitation() {
+  const event = pageData.event || {};
+  document.querySelector('#eventDateLine').textContent = event.date || 'FECHA POR CONFIRMAR';
+  document.querySelector('#eventVenueLine').textContent = `${event.venue || 'CASA JUGO'} · ${event.city || 'QUERÉTARO'}`;
+  document.querySelector('#ticketDate').textContent = event.dateShort || event.date || 'POR CONFIRMAR';
+  document.querySelector('#registrationPrice').textContent = event.price || '$100 MXN';
+  document.querySelector('#ticketPrice').textContent = event.price || '$100 MXN';
+  document.querySelector('#mapsPortal').href = event.mapsUrl || '#';
+  document.querySelector('#visualArtist').textContent = pageData.visualArtist || 'WROWERS';
+
+  const lineup = document.querySelector('#lineupList');
+  lineup.replaceChildren();
+  (pageData.lineup || []).forEach((artist) => {
+    const item = document.createElement('li');
+    item.className = 'lineup-item';
+    item.innerHTML = `<div><strong>${escapeHTML(artist.name)}</strong></div>`;
+    lineup.append(item);
+  });
+
+  document.querySelectorAll('.view').forEach((view) => { view.hidden = false; });
+  const requestedView = location.hash.slice(1);
+  activateView(['lineup', 'register', 'location'].includes(requestedView) ? requestedView : 'lineup', { updateHash: false });
+  if (guestProfile) showTicket();
+}
+
+function activateView(key, { updateHash = true } = {}) {
+  document.body.dataset.activeView = key;
+  document.querySelectorAll('[data-view]').forEach((view) => {
+    const active = view.dataset.view === key;
+    view.classList.toggle('is-active', active);
+    view.setAttribute('aria-hidden', String(!active));
+  });
+  document.querySelectorAll('.nav-tab').forEach((button) => {
+    const active = button.dataset.viewTarget === key;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
+  if (updateHash) history.replaceState(null, '', `#${key}`);
+  if (key === 'lineup') {
+    switchModel('moon');
+    restartModelCycle('moon');
+  }
+}
+
+function restartModelCycle(currentKey = state.activeKey) {
+  window.clearTimeout(autoCycleTimer);
+  const order = (pageData.modelOrder || ['moon', 'kameo', 'kalus', 'dragon', 'diama']).filter((key) => MODEL_LIBRARY[key]);
+  cycleIndex = Math.max(0, order.indexOf(currentKey));
+  const delay = Number(pageData.modelRotationMs) || 5000;
+  autoCycleTimer = window.setTimeout(async () => {
+    if (!document.hidden) {
+      cycleIndex = (cycleIndex + 1) % order.length;
+      await switchModel(order[cycleIndex]);
+    }
+    restartModelCycle(order[cycleIndex]);
+  }, delay);
+}
+
+function readProfile() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; }
+  catch { return null; }
+}
+
+function normalizeInstagram(value = '') {
+  return value.trim().replace(/^@+/, '').replace(/\s+/g, '');
+}
+
+function makeFolio(name, instagram) {
+  const source = `${name}|${instagram}|${Date.now()}`;
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `PNC-${Math.abs(hash >>> 0).toString(36).toUpperCase().slice(0, 7).padStart(7, '0')}`;
+}
+
+function showTicket() {
+  if (!guestProfile) return;
+  document.body.dataset.ticketReady = 'true';
+  document.querySelector('#registrationForm').hidden = true;
+  document.querySelector('#ticketPanel').hidden = false;
+  document.querySelector('#ticketName').textContent = guestProfile.name;
+  document.querySelector('#ticketInstagram').textContent = `@${guestProfile.instagram}`;
+  document.querySelector('#ticketFolio').textContent = guestProfile.folio;
+}
+
+function toast(message) {
+  const element = document.querySelector('#toast');
+  element.textContent = message;
+  element.classList.add('is-visible');
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => element.classList.remove('is-visible'), 3200);
+}
+
+async function submitRegistration(event) {
+  event.preventDefault();
+  const name = document.querySelector('#guestName').value.trim();
+  const instagram = normalizeInstagram(document.querySelector('#guestInstagram').value);
+  const message = document.querySelector('#formMessage');
+  if (name.length < 2 || instagram.length < 2) {
+    message.textContent = 'ESCRIBE TU NOMBRE Y TU USUARIO DE INSTAGRAM.';
+    return;
+  }
+
+  guestProfile = { name, instagram, folio: makeFolio(name, instagram), createdAt: new Date().toISOString() };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(guestProfile)); }
+  catch { /* El boleto sigue disponible aunque el almacenamiento esté bloqueado. */ }
+
+  showTicket();
+  toast('BOLETO GENERADO');
+
+  if (pageData.registrationEndpoint) {
+    try {
+      const response = await fetch(pageData.registrationEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          event: pageData.event?.name || 'DIAMA X PANIC',
+          name,
+          instagram: `@${instagram}`,
+          folio: guestProfile.folio,
+        }),
+      });
+      if (!response.ok) throw new Error(`Registration ${response.status}`);
+    } catch {
+      toast('BOLETO GENERADO · SINCRONIZACIÓN REMOTA PENDIENTE');
+    }
+  }
+}
+
+document.querySelectorAll('[data-view-target]').forEach((control) => {
+  control.addEventListener('click', (event) => {
+    event.preventDefault();
+    activateView(control.dataset.viewTarget);
+  });
+});
+
+document.querySelector('#registrationForm').addEventListener('submit', submitRegistration);
+window.addEventListener('hashchange', () => {
+  const key = location.hash.slice(1);
+  if (['lineup', 'register', 'location'].includes(key)) activateView(key, { updateHash: false });
+});
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) restartModelCycle(state.activeKey);
+});
+
+hydrateInvitation();
+updateAccent('#6fb0d4');
 switchModel('moon');
+restartModelCycle('moon');
 requestAnimationFrame(render);
