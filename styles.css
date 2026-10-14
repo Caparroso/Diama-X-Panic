@@ -377,7 +377,15 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .view.is-active { opacity: 1; visibility: visible; transform: translateY(0); }
 .view:not(.lineup-view).is-active { pointer-events: auto; }
-body[data-active-view="location"] #sceneCanvas:not(.is-switching) { opacity: 0.42; filter: saturate(0.58) contrast(1.08); }
+body[data-active-view="location"] #sceneCanvas,
+body[data-active-view="location"] .model-index,
+body[data-active-view="location"] .scene-tools,
+body[data-active-view="location"] .loading-state,
+body[data-active-view="location"] .error-state {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
 
 .view-kicker {
   position: absolute;
@@ -613,31 +621,6 @@ body[data-ticket-ready="true"] .toast { display: none; }
 .haunted-threshold:hover .portal-arch,
 .haunted-threshold:focus-visible .portal-arch { transform: translateX(-50%) scale(1.025); }
 
-.halloween-moon {
-  position: absolute;
-  z-index: -2;
-  top: 4%;
-  left: 50%;
-  width: 48%;
-  aspect-ratio: 1;
-  transform: translateX(-50%);
-  overflow: hidden;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 31%, rgba(18, 40, 52, 0.34) 0 5%, transparent 6%),
-    radial-gradient(circle at 68% 60%, rgba(18, 40, 52, 0.28) 0 8%, transparent 9%),
-    radial-gradient(circle at 46% 75%, rgba(18, 40, 52, 0.2) 0 4%, transparent 5%),
-    radial-gradient(circle at 44% 42%, #d6f1ff 0, #86bdd7 46%, #44748c 70%, #142c39 100%);
-  box-shadow: 0 0 38px rgba(139, 207, 241, 0.42), 0 0 110px rgba(var(--accent-rgb), 0.18);
-  opacity: 0.86;
-  animation: moonFlicker 8s ease-in-out infinite;
-}
-
-.halloween-moon i { position: absolute; border-radius: 50%; border: 1px solid rgba(17, 43, 56, 0.2); background: rgba(29, 65, 82, 0.14); }
-.halloween-moon i:nth-child(1) { width: 16%; height: 12%; top: 22%; left: 56%; }
-.halloween-moon i:nth-child(2) { width: 10%; height: 8%; top: 59%; left: 22%; }
-.halloween-moon i:nth-child(3) { width: 19%; height: 16%; top: 68%; left: 58%; }
-
 .dead-branches {
   position: absolute;
   z-index: 4;
@@ -691,9 +674,7 @@ body[data-ticket-ready="true"] .toast { display: none; }
   box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.9), inset 0 0 18px rgba(var(--accent-rgb), 0.14);
 }
 
-.portal-core span { color: var(--accent); font-size: clamp(24px, 3vw, 46px); text-shadow: 0 0 22px rgba(var(--accent-rgb), 0.9); animation: sigilPulse 2.8s ease-in-out infinite; }
-.portal-core b { margin-top: 4px; color: rgba(236, 248, 253, 0.9); font: 900 clamp(24px, 3.7vw, 54px)/0.84 "Inter", Arial, sans-serif; letter-spacing: -0.065em; text-align: center; }
-.portal-core small { margin-top: 16px; padding-top: 10px; border-top: 1px solid rgba(var(--accent-rgb), 0.3); color: var(--accent); font: 700 clamp(0.48rem, 0.56vw, 0.62rem) Consolas, monospace; letter-spacing: 0.16em; }
+.portal-core b { color: rgba(236, 248, 253, 0.94); font: 900 clamp(30px, 4.4vw, 64px)/0.82 "Inter", Arial, sans-serif; letter-spacing: -0.065em; text-align: center; text-shadow: 0 0 26px rgba(var(--accent-rgb), 0.32); }
 
 .fog-bands { position: absolute; z-index: 5; right: -12%; bottom: 0; left: -12%; height: 29%; overflow: hidden; pointer-events: none; }
 .fog-bands i { position: absolute; left: -20%; width: 140%; height: 48%; border-radius: 50%; background: radial-gradient(ellipse, rgba(143, 192, 215, 0.18), transparent 64%); filter: blur(13px); animation: fogDrift 8s ease-in-out infinite alternate; }
@@ -731,10 +712,8 @@ body[data-ticket-ready="true"] .toast { display: none; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes lineupIn { from { opacity: 0; filter: blur(7px); translate: 0 15px; } to { opacity: 1; filter: blur(0); translate: 0 0; } }
-@keyframes moonFlicker { 0%, 100% { opacity: 0.82; filter: brightness(0.94); } 48% { opacity: 0.92; filter: brightness(1.08); } 52% { opacity: 0.76; filter: brightness(0.9); } }
 @keyframes batFloat { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(8px, -9px); } }
 @keyframes fogDrift { from { transform: translateX(-5%) scaleX(0.96); } to { transform: translateX(7%) scaleX(1.04); } }
-@keyframes sigilPulse { 0%, 100% { opacity: 0.58; transform: scale(0.92); } 50% { opacity: 1; transform: scale(1.08); } }
 
 @media (max-width: 1050px) {
   .nav-tab { min-width: 108px; padding: 0 12px; }
@@ -800,7 +779,6 @@ body[data-ticket-ready="true"] .toast { display: none; }
   .register-console { display: block; }
   .registration-form { min-height: 390px; }
   .console-title > span { width: 40px; height: 40px; }
-  .portal-core small { letter-spacing: 0.12em; }
 }
 
 @media (prefers-reduced-motion: reduce) {

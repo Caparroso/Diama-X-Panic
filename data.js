@@ -12,9 +12,8 @@ window.DIAMA_PANIC_DATA = {
   lineup: [
     { name: 'Pog', role: 'DJ' },
     { name: 'Ricxrdi', role: 'DJ' },
-    { name: 'Morphxs', role: 'DJ' },
     { name: 'Gitoskief', role: 'DJ' },
-    { name: 'Villalba', role: 'DJ' },
+    { name: 'Villalva', role: 'DJ' },
     { name: 'Dj pendejo', role: 'DJ' }
   ],
   visualArtist: 'WROWERS',

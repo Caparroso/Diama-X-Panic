@@ -25,7 +25,7 @@ const MODEL_LIBRARY = {
     name: 'Espada',
     role: 'Panic X Diama',
     code: '02',
-    glb: './assets/models/espada/espada-panic-diama.glb',
+    glb: './assets/models/espada/espada-panic-diama.glb?v=20261014b',
     targetSize: 3.05,
     cameraDistance: 0.98,
     mobileCameraDistance: 1.12,
