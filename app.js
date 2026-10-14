@@ -9,36 +9,10 @@ const modelCode = document.querySelector('#modelCode');
 const pageData = window.DIAMA_PANIC_DATA || {};
 
 const MODEL_LIBRARY = {
-  kameo: {
-    name: 'Kameo',
-    role: 'Elemental warrior',
-    code: '01',
-    poseMode: 1,
-    parts: [
-      { obj: './assets/models/kameo/Kai.obj', mtl: './assets/models/kameo/Kai.mtl' },
-    ],
-  },
-  kalus: {
-    name: 'Kalus',
-    role: 'Shadow boss',
-    code: '02',
-    poseMode: 2,
-    parts: [
-      { obj: './assets/models/kalus/kalus.obj', mtl: './assets/models/kalus/kalus.mtl' },
-    ],
-  },
-  dragon: {
-    name: 'Dragon',
-    role: 'Airborne enemy',
-    code: '03',
-    parts: [
-      { obj: './assets/models/dragon/dragon_cheaper.obj', mtl: './assets/models/dragon/dragon_cheaper.mtl' },
-    ],
-  },
   moon: {
     name: 'Moon',
     role: "Majora's Mask",
-    code: '04',
+    code: '01',
     glb: './assets/models/moon/majoras-mask-moon.glb',
     fit: 'width',
     targetSize: 3.18,
@@ -46,6 +20,35 @@ const MODEL_LIBRARY = {
     startAngle: 325,
     cameraDistance: 1.4,
     mobileCameraDistance: 1.58,
+  },
+  espada: {
+    name: 'Espada',
+    role: 'Panic X Diama',
+    code: '02',
+    glb: './assets/models/espada/espada-panic-diama.glb',
+    targetSize: 3.05,
+    cameraDistance: 0.98,
+    mobileCameraDistance: 1.12,
+  },
+  objt1: {
+    name: 'OBJT 1',
+    role: 'Panic X Diama',
+    code: '03',
+    glb: './assets/models/objt-1/objt-1-panic-diama.glb',
+    targetSize: 3.12,
+    cameraDistance: 1.08,
+    mobileCameraDistance: 1.3,
+  },
+  panic: {
+    name: 'Panic.exe',
+    role: '3D identity',
+    code: '04',
+    glb: './assets/models/panic-logo/panic-logo.glb',
+    fit: 'width',
+    targetSize: 3.72,
+    centerY: 1.62,
+    cameraDistance: 1.08,
+    mobileCameraDistance: 1.48,
   },
   diama: {
     name: 'Diama',
@@ -462,10 +465,17 @@ function parseGlb(arrayBuffer) {
     const source = document.materials?.[primitive.material] || {};
     const pbr = source.pbrMetallicRoughness || {};
     const baseColor = pbr.baseColorFactor || [1, 1, 1, 1];
+    const emissive = source.emissiveFactor || [0, 0, 0];
+    const emissivePeak = Math.max(...emissive);
+    const textureInfo = pbr.baseColorTexture || source.emissiveTexture;
+    const visibleColor = !textureInfo && emissivePeak > 0.001
+      ? emissive.map((value) => value / emissivePeak)
+      : baseColor.slice(0, 3);
     return {
-      color: baseColor.slice(0, 3),
+      color: visibleColor,
       opacity: source.alphaMode === 'BLEND' ? baseColor[3] : 1,
-      map: imageSource(pbr.baseColorTexture || source.emissiveTexture),
+      map: imageSource(textureInfo),
+      texCoord: textureInfo?.texCoord || 0,
       flipY: false,
     };
   }
@@ -490,15 +500,17 @@ function parseGlb(arrayBuffer) {
     const mesh = document.meshes[instance.meshIndex];
     for (const primitive of mesh.primitives || []) {
       if (primitive.mode !== undefined && primitive.mode !== 4) continue;
+      const material = materialFor(primitive);
       const positionAccessor = readAccessor(primitive.attributes.POSITION);
       const normalAccessor = primitive.attributes.NORMAL === undefined ? null : readAccessor(primitive.attributes.NORMAL);
-      const uvAccessor = primitive.attributes.TEXCOORD_0 === undefined ? null : readAccessor(primitive.attributes.TEXCOORD_0);
+      const uvAttribute = primitive.attributes[`TEXCOORD_${material.texCoord}`] ?? primitive.attributes.TEXCOORD_0;
+      const uvAccessor = uvAttribute === undefined ? null : readAccessor(uvAttribute);
       const indices = primitive.indices === undefined
         ? Array.from({ length: positionAccessor.values.length / 3 }, (_, index) => index)
         : readAccessor(primitive.indices).values;
       const group = {
         materialName: document.materials?.[primitive.material]?.name || `glb-material-${primitive.material || 0}`,
-        material: materialFor(primitive),
+        material,
         positions: [],
         normals: [],
         uvs: [],
@@ -571,9 +583,7 @@ async function loadModel(key) {
         mapTexture,
         alphaTexture,
         transparent: Boolean(material.alphaMap) || material.opacity < 0.999,
-        poseGroup: key === 'kameo' || (
-          key === 'kalus' && !['texturefile_135', 'texturefile_137', 'texturefile_138'].includes(group.materialName)
-        ) ? 1 : 0,
+        poseGroup: 0,
       }));
     }
     gpuGroups.sort((a, b) => Number(a.material.transparent) - Number(b.material.transparent));
@@ -855,10 +865,10 @@ canvas.addEventListener('wheel', (event) => {
 }, { passive: false });
 
 window.addEventListener('keydown', (event) => {
-  if (event.key === '1') { switchModel('kameo'); restartModelCycle('kameo'); }
-  if (event.key === '2') { switchModel('kalus'); restartModelCycle('kalus'); }
-  if (event.key === '3') { switchModel('dragon'); restartModelCycle('dragon'); }
-  if (event.key === '4') { switchModel('moon'); restartModelCycle('moon'); }
+  if (event.key === '1') { switchModel('moon'); restartModelCycle('moon'); }
+  if (event.key === '2') { switchModel('espada'); restartModelCycle('espada'); }
+  if (event.key === '3') { switchModel('objt1'); restartModelCycle('objt1'); }
+  if (event.key === '4') { switchModel('panic'); restartModelCycle('panic'); }
   if (event.key === '5') { switchModel('diama'); restartModelCycle('diama'); }
 });
 
@@ -993,7 +1003,7 @@ function activateView(key, { updateHash = true } = {}) {
 
 function restartModelCycle(currentKey = state.activeKey) {
   window.clearTimeout(autoCycleTimer);
-  const order = (pageData.modelOrder || ['moon', 'kameo', 'kalus', 'dragon', 'diama']).filter((key) => MODEL_LIBRARY[key]);
+  const order = (pageData.modelOrder || ['moon', 'espada', 'objt1', 'panic', 'diama']).filter((key) => MODEL_LIBRARY[key]);
   cycleIndex = Math.max(0, order.indexOf(currentKey));
   const delay = Number(pageData.modelRotationMs) || 5000;
   autoCycleTimer = window.setTimeout(async () => {

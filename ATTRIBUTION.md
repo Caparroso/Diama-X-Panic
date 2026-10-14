@@ -5,3 +5,9 @@
 - Source: https://sketchfab.com/3d-models/the-legend-of-zelda-majoras-mask-3d-moon-062f9773cb5b43338a60780e1e61c4bc
 - License: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
 - Use in this project: normalized, lit, and presented inside the Diama X Panic 3D room.
+
+## Project-supplied models
+
+- `espada-panic-diama.glb`: updated textured Panic X Diama sword supplied for this project.
+- `objt-1-panic-diama.glb`: optimized browser-ready version of the supplied `OBJT 1 PANIC XDIAMA.glb` model.
+- `panic-logo.glb`: browser-ready conversion of the supplied `Panic Logo.fbx` model.

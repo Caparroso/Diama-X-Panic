@@ -20,5 +20,5 @@ window.DIAMA_PANIC_DATA = {
   visualArtist: 'WROWERS',
   registrationEndpoint: '',
   modelRotationMs: 5000,
-  modelOrder: ['moon', 'kameo', 'kalus', 'dragon', 'diama']
+  modelOrder: ['moon', 'espada', 'objt1', 'panic', 'diama']
 };
