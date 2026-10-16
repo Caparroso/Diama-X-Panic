@@ -945,11 +945,8 @@ function rotationYTranslation(angle, verticalOffset) {
   ]);
 }
 
-const STORAGE_KEY = 'diama-panic-registration-v5';
 let autoCycleTimer = null;
 let cycleIndex = 0;
-let toastTimer = null;
-let guestProfile = readProfile();
 
 function escapeHTML(value = '') {
   return String(value).replace(/[&<>'"]/g, (character) => ({
@@ -959,13 +956,18 @@ function escapeHTML(value = '') {
 
 function hydrateInvitation() {
   const event = pageData.event || {};
+  const ticketing = pageData.ticketing || {};
   document.querySelector('#eventDateLine').textContent = event.date || 'FECHA POR CONFIRMAR';
-  document.querySelector('#eventVenueLine').textContent = `${event.venue || 'CASA JUGO'} · ${event.city || 'QUERÉTARO'}`;
-  document.querySelector('#ticketDate').textContent = event.dateShort || event.date || 'POR CONFIRMAR';
-  document.querySelector('#registrationPrice').textContent = event.price || '$100 MXN';
-  document.querySelector('#ticketPrice').textContent = event.price || '$100 MXN';
+  document.querySelector('#eventVenueLine').textContent = event.city || 'QUERÉTARO';
   document.querySelector('#mapsPortal').href = event.mapsUrl || '#';
   document.querySelector('#visualArtist').textContent = pageData.visualArtist || 'WROWERS';
+  document.querySelector('#ticketCheckoutLink').href = ticketing.url || '#';
+  document.querySelector('#ticketPhase').textContent = ticketing.phase || 'PREVENTA';
+  document.querySelector('#ticketStatus').textContent = ticketing.status || 'DISPONIBLE';
+  document.querySelector('#ticketPrice').textContent = ticketing.price || '$99 MXN';
+  document.querySelector('#ticketPromoName').textContent = ticketing.promoName || '2X PROMO';
+  document.querySelector('#ticketPromoDetail').textContent = ticketing.promoDetail || '2 ACCESOS';
+  document.querySelector('#ticketPromoPrice').textContent = ticketing.promoPrice || '$189 MXN';
 
   const lineup = document.querySelector('#lineupList');
   lineup.replaceChildren();
@@ -979,7 +981,6 @@ function hydrateInvitation() {
   document.querySelectorAll('.view').forEach((view) => { view.hidden = false; });
   const requestedView = location.hash.slice(1);
   activateView(['lineup', 'register', 'location'].includes(requestedView) ? requestedView : 'lineup', { updateHash: false });
-  if (guestProfile) showTicket();
 }
 
 function activateView(key, { updateHash = true } = {}) {
@@ -1015,79 +1016,6 @@ function restartModelCycle(currentKey = state.activeKey) {
   }, delay);
 }
 
-function readProfile() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; }
-  catch { return null; }
-}
-
-function normalizeInstagram(value = '') {
-  return value.trim().replace(/^@+/, '').replace(/\s+/g, '');
-}
-
-function makeFolio(name, instagram) {
-  const source = `${name}|${instagram}|${Date.now()}`;
-  let hash = 2166136261;
-  for (let index = 0; index < source.length; index += 1) {
-    hash ^= source.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return `PNC-${Math.abs(hash >>> 0).toString(36).toUpperCase().slice(0, 7).padStart(7, '0')}`;
-}
-
-function showTicket() {
-  if (!guestProfile) return;
-  document.body.dataset.ticketReady = 'true';
-  document.querySelector('#registrationForm').hidden = true;
-  document.querySelector('#ticketPanel').hidden = false;
-  document.querySelector('#ticketName').textContent = guestProfile.name;
-  document.querySelector('#ticketInstagram').textContent = `@${guestProfile.instagram}`;
-  document.querySelector('#ticketFolio').textContent = guestProfile.folio;
-}
-
-function toast(message) {
-  const element = document.querySelector('#toast');
-  element.textContent = message;
-  element.classList.add('is-visible');
-  window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => element.classList.remove('is-visible'), 3200);
-}
-
-async function submitRegistration(event) {
-  event.preventDefault();
-  const name = document.querySelector('#guestName').value.trim();
-  const instagram = normalizeInstagram(document.querySelector('#guestInstagram').value);
-  const message = document.querySelector('#formMessage');
-  if (name.length < 2 || instagram.length < 2) {
-    message.textContent = 'ESCRIBE TU NOMBRE Y TU USUARIO DE INSTAGRAM.';
-    return;
-  }
-
-  guestProfile = { name, instagram, folio: makeFolio(name, instagram), createdAt: new Date().toISOString() };
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(guestProfile)); }
-  catch { /* El boleto sigue disponible aunque el almacenamiento esté bloqueado. */ }
-
-  showTicket();
-  toast('BOLETO GENERADO');
-
-  if (pageData.registrationEndpoint) {
-    try {
-      const response = await fetch(pageData.registrationEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          event: pageData.event?.name || 'DIAMA X PANIC',
-          name,
-          instagram: `@${instagram}`,
-          folio: guestProfile.folio,
-        }),
-      });
-      if (!response.ok) throw new Error(`Registration ${response.status}`);
-    } catch {
-      toast('BOLETO GENERADO · SINCRONIZACIÓN REMOTA PENDIENTE');
-    }
-  }
-}
-
 document.querySelectorAll('[data-view-target]').forEach((control) => {
   control.addEventListener('click', (event) => {
     event.preventDefault();
@@ -1095,7 +1023,6 @@ document.querySelectorAll('[data-view-target]').forEach((control) => {
   });
 });
 
-document.querySelector('#registrationForm').addEventListener('submit', submitRegistration);
 window.addEventListener('hashchange', () => {
   const key = location.hash.slice(1);
   if (['lineup', 'register', 'location'].includes(key)) activateView(key, { updateHash: false });
