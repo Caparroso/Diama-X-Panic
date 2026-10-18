@@ -4,8 +4,8 @@ window.DIAMA_PANIC_DATA = {
     date: '30 DE OCTUBRE 2026 · 8:00 PM',
     dateShort: '30 OCT 2026 · 8:00 PM',
     city: 'SANTIAGO DE QUERÉTARO',
-    address: 'Calle 3a Cda. de los Arcos 2, Loma Dorada, 76060 Santiago de Querétaro, Qro.',
-    mapsUrl: 'https://maps.app.goo.gl/2daM6YKggRxVhezH6'
+    eventAt: '2026-10-30T20:00:00-06:00',
+    locationRevealAt: '2026-10-29T20:00:00-06:00'
   },
   lineup: [
     { name: 'Pog', role: 'DJ' },

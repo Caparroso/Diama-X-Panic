@@ -947,6 +947,9 @@ function rotationYTranslation(angle, verticalOffset) {
 
 let autoCycleTimer = null;
 let cycleIndex = 0;
+let locationCountdownTimer = null;
+let locationRevealRetryTimer = null;
+let locationRevealRequested = false;
 
 function escapeHTML(value = '') {
   return String(value).replace(/[&<>'"]/g, (character) => ({
@@ -959,7 +962,6 @@ function hydrateInvitation() {
   const ticketing = pageData.ticketing || {};
   document.querySelector('#eventDateLine').textContent = event.date || 'FECHA POR CONFIRMAR';
   document.querySelector('#eventVenueLine').textContent = event.city || 'QUERÉTARO';
-  document.querySelector('#mapsPortal').href = event.mapsUrl || '#';
   document.querySelector('#visualArtist').textContent = pageData.visualArtist || 'WROWERS';
   document.querySelector('#ticketCheckoutLink').href = ticketing.url || '#';
   document.querySelector('#ticketPhase').textContent = ticketing.phase || 'PREVENTA';
@@ -979,6 +981,7 @@ function hydrateInvitation() {
   });
 
   document.querySelectorAll('.view').forEach((view) => { view.hidden = false; });
+  initializeSecretLocation();
   const requestedView = location.hash.slice(1);
   activateView(['lineup', 'register', 'location'].includes(requestedView) ? requestedView : 'lineup', { updateHash: false });
 }
@@ -999,6 +1002,71 @@ function activateView(key, { updateHash = true } = {}) {
   if (key === 'lineup') {
     switchModel('moon');
     restartModelCycle('moon');
+  }
+}
+
+function initializeSecretLocation() {
+  window.clearInterval(locationCountdownTimer);
+  window.clearTimeout(locationRevealRetryTimer);
+
+  const revealAt = Date.parse(pageData.event?.locationRevealAt || '');
+  const status = document.querySelector('#locationStatus');
+  if (!Number.isFinite(revealAt)) {
+    if (status) status.textContent = 'La hora de revelación se anunciará próximamente.';
+    return;
+  }
+
+  const update = () => {
+    const remaining = revealAt - Date.now();
+    if (remaining <= 0) {
+      window.clearInterval(locationCountdownTimer);
+      document.querySelector('#locationCountdown').hidden = true;
+      const revealDate = document.querySelector('#locationRevealDate');
+      if (revealDate) revealDate.hidden = true;
+      if (status) status.textContent = 'Revelando la dirección exacta…';
+      requestRevealedLocation();
+      return;
+    }
+
+    const totalSeconds = Math.floor(remaining / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    document.querySelector('#countdownDays').textContent = String(days).padStart(2, '0');
+    document.querySelector('#countdownHours').textContent = String(hours).padStart(2, '0');
+    document.querySelector('#countdownMinutes').textContent = String(minutes).padStart(2, '0');
+    document.querySelector('#countdownSeconds').textContent = String(seconds).padStart(2, '0');
+    document.querySelector('#locationCountdown').setAttribute('aria-label', `${days} días, ${hours} horas, ${minutes} minutos y ${seconds} segundos para revelar la ubicación`);
+  };
+
+  update();
+  if (revealAt > Date.now()) locationCountdownTimer = window.setInterval(update, 1000);
+}
+
+async function requestRevealedLocation() {
+  if (locationRevealRequested) return;
+  locationRevealRequested = true;
+  const status = document.querySelector('#locationStatus');
+
+  try {
+    const endpoint = new URL('./location.json', location.href);
+    endpoint.searchParams.set('v', Date.now());
+    const response = await fetch(endpoint, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Location is not published yet');
+    const revealed = await response.json();
+    if (!revealed.address || !revealed.mapsUrl) throw new Error('Location payload is incomplete');
+
+    document.querySelector('#exactLocationName').textContent = revealed.name || 'DIAMA X PANIC';
+    document.querySelector('#exactLocationAddress').textContent = revealed.address;
+    document.querySelector('#exactLocationLink').href = revealed.mapsUrl;
+    document.querySelector('#locationReveal').hidden = false;
+    if (status) status.textContent = 'La ubicación exacta ya está disponible.';
+    document.querySelector('#secretLocationCard').classList.add('is-revealed');
+  } catch (error) {
+    locationRevealRequested = false;
+    if (status) status.textContent = 'La dirección está por revelarse. Mantén esta pantalla abierta.';
+    locationRevealRetryTimer = window.setTimeout(requestRevealedLocation, 30000);
   }
 }
 
