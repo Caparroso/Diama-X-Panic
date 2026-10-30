@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#4e88aa" />
+    <meta name="description" content="Invitación interactiva 3D para Diama X Panic en Querétaro." />
+    <meta property="og:title" content="Diama X Panic" />
+    <meta property="og:description" content="Line up, boletos oficiales y ubicación de Diama X Panic." />
+    <meta property="og:type" content="website" />
+    <title>Diama X Panic — Invitación</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070a0c'/%3E%3Cpath d='M16 17h15c11 0 18 5 18 15s-7 15-18 15H16zm10 8v14h5c5 0 8-2 8-7s-3-7-8-7z' fill='%236fb0d4'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css?v=20261030-location-v2" />
+  </head>
+  <body>
+    <main class="app-shell" id="appShell">
+      <header class="topbar">
+        <a class="brand-lockup" href="#lineup" data-view-target="lineup" aria-label="Diama X Panic — abrir line up">
+          <span class="diama-logo-crop"><img src="./assets/branding/diama-logo.png" alt="Diama" /></span>
+          <span class="brand-x">×</span>
+          <span class="panic-logo-crop panic-logo-header"><img src="./assets/branding/panic-logo.svg" alt="Panic.exe" /></span>
+        </a>
+
+        <nav class="primary-nav" aria-label="Secciones de la invitación">
+          <button class="nav-tab is-active" type="button" data-view-target="lineup" aria-selected="true"><span>01</span>LINE UP</button>
+          <button class="nav-tab" type="button" data-view-target="register" aria-selected="false"><span>02</span>BOLETOS</button>
+          <button class="nav-tab" type="button" data-view-target="location" aria-selected="false"><span>03</span>UBICACIÓN</button>
+        </nav>
+        <span class="sr-only" id="statusText" aria-live="polite">Cargando escena</span>
+      </header>
+
+      <section class="viewer" aria-label="Escena 3D de Diama X Panic">
+        <div class="atmosphere" aria-hidden="true">
+          <div class="room-back-wall"></div>
+          <div class="room-side room-side-left"></div>
+          <div class="room-side room-side-right"></div>
+          <div class="room-floor"></div>
+          <div class="light-column light-column-a"></div>
+          <div class="light-column light-column-b"></div>
+          <div class="floor-grid"></div>
+          <div class="model-shadow"></div>
+          <div class="floor-ring"><span></span></div>
+        </div>
+
+        <canvas id="sceneCanvas" aria-label="Modelo 3D rotatorio. Arrastra para cambiar el ángulo y usa la rueda para acercarte."></canvas>
+        <div class="scanlines" aria-hidden="true"></div>
+        <div class="vignette" aria-hidden="true"></div>
+
+        <div class="loading-state" id="loadingState">
+          <span class="loader-ring"></span>
+          <p id="loadingLabel">Preparando a Moon</p>
+        </div>
+        <div class="error-state" id="errorState" hidden>
+          <strong>No se pudo abrir el modelo</strong>
+          <button type="button" id="retryButton">Reintentar</button>
+        </div>
+
+        <aside class="model-index" aria-label="Modelos 3D">
+          <div class="model-buttons" role="list">
+            <button class="model-button model-select-button is-active" type="button" data-model="moon" aria-label="Mostrar Luna" aria-pressed="true"><span>01</span></button>
+            <button class="model-button model-select-button" type="button" data-model="espada" aria-label="Mostrar Espada Panic X Diama" aria-pressed="false"><span>02</span></button>
+            <button class="model-button model-select-button" type="button" data-model="objt1" aria-label="Mostrar OBJT 1 Panic X Diama" aria-pressed="false"><span>03</span></button>
+            <button class="model-button model-select-button" type="button" data-model="panic" aria-label="Mostrar logo 3D de Panic" aria-pressed="false"><span>04</span></button>
+            <button class="model-button model-select-button" type="button" data-model="diama" aria-label="Mostrar Diama" aria-pressed="false"><span>D</span></button>
+          </div>
+        </aside>
+
+        <div class="sr-only" aria-live="polite">
+          <span id="modelCode">01</span><span id="modelName">Moon</span><span id="modelRole">Majora's Mask</span>
+        </div>
+
+        <div class="scene-tools" aria-label="Color de iluminación">
+          <button class="swatch swatch-blue is-active" type="button" data-color="#6fb0d4" aria-label="Luz azul" aria-pressed="true"></button>
+          <button class="swatch swatch-green" type="button" data-color="#78ff68" aria-label="Luz verde" aria-pressed="false"></button>
+          <button class="swatch swatch-pink" type="button" data-color="#ff4fd8" aria-label="Luz magenta" aria-pressed="false"></button>
+        </div>
+      </section>
+
+      <div class="view-stage" id="viewStage">
+        <section class="view lineup-view is-active" data-view="lineup" aria-labelledby="lineupTitle">
+          <h1 class="sr-only" id="lineupTitle">Line up</h1>
+          <ol class="lineup-list" id="lineupList" aria-label="Line up"></ol>
+          <div class="visual-credit"><span>VISUALES POR</span><strong id="visualArtist">WROWERS</strong></div>
+          <div class="event-stamp">
+            <span id="eventDateLine">30 DE OCTUBRE 2026 · 8:00 PM</span>
+            <strong id="eventVenueLine">SANTIAGO DE QUERÉTARO</strong>
+          </div>
+        </section>
+
+        <section class="view register-view" data-view="register" aria-labelledby="registerTitle" hidden>
+          <div class="panel-heading">
+            <span>VENTA OFICIAL / 02</span>
+            <h2 id="registerTitle">BOLETOS</h2>
+            <p>Asegura tu acceso en Shows.link. Recibirás tu boleto digital oficial al terminar la compra.</p>
+          </div>
+
+          <article class="ticket-portal" aria-label="Venta oficial de boletos">
+            <header class="ticket-portal-header">
+              <div class="ticket-provider-mark" aria-hidden="true"><span>D</span><i>×</i><span>P</span></div>
+              <div>
+                <span>DIAMA X PANIC</span>
+                <strong>ACCESO OFICIAL</strong>
+              </div>
+              <b class="sale-status" id="ticketStatus">ÚLTIMOS</b>
+            </header>
+
+            <div class="ticket-options">
+              <div class="ticket-option is-featured">
+                <div>
+                  <span id="ticketPhase">PREVENTA FASE 1</span>
+                  <small>ACCESO INDIVIDUAL</small>
+                </div>
+                <strong><span id="ticketPrice">$99 MXN</span><small>+ CARGOS</small></strong>
+              </div>
+              <div class="ticket-option">
+                <div>
+                  <span id="ticketPromoName">2X PROMO</span>
+                  <small id="ticketPromoDetail">2 ACCESOS</small>
+                </div>
+                <strong><span id="ticketPromoPrice">$189 MXN</span><small>+ CARGOS</small></strong>
+              </div>
+            </div>
+
+            <a class="ticket-checkout" id="ticketCheckoutLink" href="https://shows.link/panicexe-x-diama-pog-dj-pendejo/tickets" target="_blank" rel="noopener" aria-label="Comprar boletos oficiales en Shows.link, abre en otra pestaña">
+              <span>COMPRAR EN SHOWS.LINK</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" /></svg>
+            </a>
+
+            <div class="ticket-trust" aria-label="Beneficios de la venta oficial">
+              <span><i></i>QR OFICIAL</span>
+              <span><i></i>PAGO SEGURO</span>
+              <span><i></i>ACCESO DIGITAL</span>
+            </div>
+            <p class="ticket-disclaimer">Venta procesada por <strong>shows.link</strong> y Mercado Pago.</p>
+          </article>
+        </section>
+
+        <section class="view location-view" data-view="location" aria-labelledby="locationTitle" hidden>
+          <h2 class="sr-only" id="locationTitle">Ubicación de Casa Jugo</h2>
+          <article class="haunted-threshold is-revealed" id="secretLocationCard" aria-label="Portal con la ubicación de Casa Jugo" aria-live="polite">
+            <p class="portal-secret-label sr-only" hidden>Ubicación de Casa Jugo</p>
+            <svg class="dead-branches" viewBox="0 0 700 700" preserveAspectRatio="none" aria-hidden="true">
+              <path d="M18 685C72 578 79 475 68 370C63 319 83 286 115 249M78 437C37 392 25 348 22 302M84 382C134 334 146 278 151 229M112 257C81 207 83 159 98 112M126 263C177 236 202 201 221 154M682 689C632 578 625 479 638 373C644 322 623 286 592 250M629 438C670 393 681 350 686 304M621 384C572 337 560 280 556 231M595 259C626 211 626 162 612 115M580 265C530 239 504 204 486 158" />
+            </svg>
+            <svg class="bat-flight" viewBox="0 0 700 700" aria-hidden="true">
+              <path d="M155 178c17-17 35-16 51 2 16-18 34-19 51-2-13-2-22 3-27 14-8-8-16-11-24-11s-16 3-24 11c-5-11-14-16-27-14Z" />
+              <path d="M496 132c12-12 25-11 36 2 11-13 24-14 36-2-9-2-15 2-19 10-6-6-11-8-17-8s-11 2-17 8c-4-8-10-12-19-10Z" />
+              <path d="M529 231c9-9 19-8 27 2 9-10 18-11 27-2-7-1-12 2-14 8-4-4-9-6-13-6s-8 2-12 6c-3-6-8-9-15-8Z" />
+            </svg>
+            <div class="portal-arch">
+              <div class="portal-core">
+                <div class="portal-countdown" id="locationCountdown" aria-label="Cuenta regresiva para revelar la ubicación" hidden>
+                  <div><strong id="countdownDays">00</strong></div>
+                  <i>:</i>
+                  <div><strong id="countdownHours">00</strong></div>
+                  <i>:</i>
+                  <div><strong id="countdownMinutes">00</strong></div>
+                  <i>:</i>
+                  <div><strong id="countdownSeconds">00</strong></div>
+                </div>
+
+                <section class="portal-location-reveal" id="locationReveal" aria-label="Dirección exacta del evento">
+                  <span class="sr-only" hidden>Dirección revelada</span>
+                  <strong class="sr-only" id="exactLocationName" hidden>CASA JUGO</strong>
+                  <p class="sr-only" id="exactLocationAddress" hidden>Calle 3a Cda. de los Arcos 2, Loma Dorada, 76060 Santiago de Querétaro, Qro.</p>
+                  <a id="exactLocationLink" href="https://maps.app.goo.gl/3prASpgAEXXF5NfE7" target="_blank" rel="noopener">ABRIR UBICACIÓN</a>
+                </section>
+              </div>
+            </div>
+            <div class="fog-bands" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="graveyard" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          </article>
+        </section>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </main>
+
+    <script src="./data.js?v=20261030-location-v2"></script>
+    <script type="module" src="./app.js?v=20261030-location-v2"></script>
+  </body>
+</html>
