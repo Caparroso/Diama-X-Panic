@@ -577,7 +577,7 @@ body[data-active-view="location"] .error-state {
 .portal-countdown strong { color: rgba(242, 250, 253, 0.96); font: 850 clamp(17px, 2.25vw, 30px)/1 "Inter", Arial, sans-serif; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; text-shadow: 0 0 18px rgba(var(--accent-rgb), 0.4); }
 .portal-countdown i { align-self: flex-start; margin-top: 4px; color: rgba(220, 240, 248, 0.32); font: normal 700 clamp(13px, 1.5vw, 21px)/1 Consolas, monospace; }
 
-.portal-location-reveal { width: calc(100% - 32px); text-align: center; }
+.portal-location-reveal { width: min(72%, 210px); text-align: center; }
 .portal-location-reveal > span { display: block; color: var(--accent); font: 700 0.39rem Consolas, monospace; letter-spacing: 0.14em; }
 .portal-location-reveal > strong { display: block; margin: 9px 0 7px; color: #fff; font: 900 clamp(20px, 2.5vw, 34px)/0.9 "Inter", Arial, sans-serif; letter-spacing: -0.055em; }
 .portal-location-reveal p { margin: 0 0 14px; color: rgba(229, 243, 248, 0.66); font-size: clamp(0.48rem, 0.72vw, 0.62rem); line-height: 1.45; }
@@ -680,7 +680,7 @@ body[data-active-view="location"] .error-state {
   .portal-countdown { width: calc(100% - 12px); gap: 3px; }
   .portal-countdown strong { font-size: clamp(13px, 4vw, 18px); }
   .portal-countdown i { font-size: 11px; }
-  .portal-location-reveal { width: calc(100% - 16px); }
+  .portal-location-reveal { width: min(76%, 180px); }
   .portal-location-reveal > strong { font-size: 17px; }
   .portal-location-reveal p { margin-bottom: 9px; font-size: 0.42rem; }
   .portal-location-reveal a { min-height: 34px; font-size: 0.43rem; }

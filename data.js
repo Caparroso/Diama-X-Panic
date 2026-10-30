@@ -3,9 +3,13 @@ window.DIAMA_PANIC_DATA = {
     name: 'DIAMA X PANIC',
     date: '30 DE OCTUBRE 2026 · 8:00 PM',
     dateShort: '30 OCT 2026 · 8:00 PM',
+    venue: 'CASA JUGO',
     city: 'SANTIAGO DE QUERÉTARO',
     eventAt: '2026-10-30T20:00:00-06:00',
-    locationRevealAt: '2026-10-29T20:00:00-06:00'
+    locationRevealAt: '2026-10-29T20:00:00-06:00',
+    locationRevealed: true,
+    address: 'Calle 3a Cda. de los Arcos 2, Loma Dorada, 76060 Santiago de Querétaro, Qro.',
+    mapsUrl: 'https://maps.app.goo.gl/3prASpgAEXXF5NfE7'
   },
   lineup: [
     { name: 'Pog', role: 'DJ' },

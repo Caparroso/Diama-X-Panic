@@ -961,7 +961,7 @@ function hydrateInvitation() {
   const event = pageData.event || {};
   const ticketing = pageData.ticketing || {};
   document.querySelector('#eventDateLine').textContent = event.date || 'FECHA POR CONFIRMAR';
-  document.querySelector('#eventVenueLine').textContent = event.city || 'QUERÉTARO';
+  document.querySelector('#eventVenueLine').textContent = [event.venue, event.city].filter(Boolean).join(' · ') || 'QUERÉTARO';
   document.querySelector('#visualArtist').textContent = pageData.visualArtist || 'WROWERS';
   document.querySelector('#ticketCheckoutLink').href = ticketing.url || '#';
   document.querySelector('#ticketPhase').textContent = ticketing.phase || 'PREVENTA';
@@ -1009,7 +1009,13 @@ function initializeSecretLocation() {
   window.clearInterval(locationCountdownTimer);
   window.clearTimeout(locationRevealRetryTimer);
 
-  const revealAt = Date.parse(pageData.event?.locationRevealAt || '');
+  const event = pageData.event || {};
+  if (event.locationRevealed && event.address && event.mapsUrl) {
+    showRevealedLocation(event);
+    return;
+  }
+
+  const revealAt = Date.parse(event.locationRevealAt || '');
   const status = document.querySelector('#locationStatus');
   if (!Number.isFinite(revealAt)) {
     if (status) status.textContent = 'La hora de revelación se anunciará próximamente.';
@@ -1044,6 +1050,18 @@ function initializeSecretLocation() {
   if (revealAt > Date.now()) locationCountdownTimer = window.setInterval(update, 1000);
 }
 
+function showRevealedLocation(revealed) {
+  document.querySelector('#locationCountdown').hidden = true;
+  document.querySelector('.portal-secret-label').textContent = 'UBICACIÓN REVELADA';
+  document.querySelector('#exactLocationName').textContent = revealed.venue || revealed.name || 'CASA JUGO';
+  document.querySelector('#exactLocationAddress').textContent = revealed.address;
+  document.querySelector('#exactLocationLink').href = revealed.mapsUrl;
+  document.querySelector('#locationReveal').hidden = false;
+  const card = document.querySelector('#secretLocationCard');
+  card.classList.add('is-revealed');
+  card.setAttribute('aria-label', `Ubicación revelada: ${revealed.venue || revealed.name || 'Casa Jugo'}`);
+}
+
 async function requestRevealedLocation() {
   if (locationRevealRequested) return;
   locationRevealRequested = true;
@@ -1057,12 +1075,8 @@ async function requestRevealedLocation() {
     const revealed = await response.json();
     if (!revealed.address || !revealed.mapsUrl) throw new Error('Location payload is incomplete');
 
-    document.querySelector('#exactLocationName').textContent = revealed.name || 'DIAMA X PANIC';
-    document.querySelector('#exactLocationAddress').textContent = revealed.address;
-    document.querySelector('#exactLocationLink').href = revealed.mapsUrl;
-    document.querySelector('#locationReveal').hidden = false;
+    showRevealedLocation(revealed);
     if (status) status.textContent = 'La ubicación exacta ya está disponible.';
-    document.querySelector('#secretLocationCard').classList.add('is-revealed');
   } catch (error) {
     locationRevealRequested = false;
     if (status) status.textContent = 'La dirección está por revelarse. Mantén esta pantalla abierta.';
