@@ -561,8 +561,8 @@ body[data-active-view="location"] .error-state {
 
 .portal-secret-label { position: absolute; z-index: 7; top: 5.5%; left: 50%; margin: 0; color: rgba(229, 244, 250, 0.78); font: 700 clamp(0.56rem, 1vw, 0.72rem) Consolas, monospace; letter-spacing: 0.26em; white-space: nowrap; transform: translateX(-50%); text-shadow: 0 0 14px rgba(var(--accent-rgb), 0.42); }
 
-.dead-branches { position: absolute; z-index: 4; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke: #020405; stroke-width: 17; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(var(--accent-rgb), 0.32)); }
-.bat-flight { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; fill: rgba(1, 4, 6, 0.9); filter: drop-shadow(0 0 5px rgba(var(--accent-rgb), 0.38)); animation: batFloat 5s ease-in-out infinite; }
+.dead-branches { position: absolute; z-index: 4; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke: #020405; stroke-width: 17; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(var(--accent-rgb), 0.32)); pointer-events: none; }
+.bat-flight { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; fill: rgba(1, 4, 6, 0.9); filter: drop-shadow(0 0 5px rgba(var(--accent-rgb), 0.38)); animation: batFloat 5s ease-in-out infinite; pointer-events: none; }
 
 .portal-arch { position: absolute; z-index: 3; left: 50%; bottom: 5%; width: 43%; height: 69%; transform: translateX(-50%); padding: 13px; border: 1px solid rgba(205, 237, 250, 0.44); border-radius: 50% 50% 7% 7% / 30% 30% 4% 4%; background: linear-gradient(105deg, #0a1217, #315568 48%, #081015 54%, #1a3543); box-shadow: 0 0 0 7px rgba(4, 10, 14, 0.88), 0 0 0 8px rgba(var(--accent-rgb), 0.32), 0 0 42px rgba(var(--accent-rgb), 0.25), inset 0 0 22px #000; }
 .portal-arch::before,
@@ -577,12 +577,12 @@ body[data-active-view="location"] .error-state {
 .portal-countdown strong { color: rgba(242, 250, 253, 0.96); font: 850 clamp(17px, 2.25vw, 30px)/1 "Inter", Arial, sans-serif; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; text-shadow: 0 0 18px rgba(var(--accent-rgb), 0.4); }
 .portal-countdown i { align-self: flex-start; margin-top: 4px; color: rgba(220, 240, 248, 0.32); font: normal 700 clamp(13px, 1.5vw, 21px)/1 Consolas, monospace; }
 
-.portal-location-reveal { width: min(72%, 210px); text-align: center; }
+.portal-location-reveal { position: relative; z-index: 8; width: min(76%, 230px); text-align: center; }
 .portal-location-reveal > span { display: block; color: var(--accent); font: 700 0.39rem Consolas, monospace; letter-spacing: 0.14em; }
 .portal-location-reveal > strong { display: block; margin: 9px 0 7px; color: #fff; font: 900 clamp(20px, 2.5vw, 34px)/0.9 "Inter", Arial, sans-serif; letter-spacing: -0.055em; }
 .portal-location-reveal p { margin: 0 0 14px; color: rgba(229, 243, 248, 0.66); font-size: clamp(0.48rem, 0.72vw, 0.62rem); line-height: 1.45; }
-.portal-location-reveal a { display: grid; min-height: 42px; place-items: center; border: 1px solid rgba(var(--accent-rgb), 0.55); color: #f3fbfe; background: rgba(var(--accent-rgb), 0.13); text-decoration: none; font: 800 clamp(0.48rem, 0.72vw, 0.62rem) "Inter", Arial, sans-serif; letter-spacing: 0.09em; }
-.portal-location-reveal a:hover, .portal-location-reveal a:focus-visible { outline: none; color: #02080b; background: var(--accent); }
+.portal-location-reveal a { position: relative; z-index: 9; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 10px 8px; border: 0; color: #f3fbfe; background: transparent; text-decoration: none; font: 850 clamp(0.58rem, 0.86vw, 0.74rem) "Inter", Arial, sans-serif; letter-spacing: 0.11em; text-shadow: 0 0 16px rgba(var(--accent-rgb), 0.72); pointer-events: auto; cursor: pointer; }
+.portal-location-reveal a:hover, .portal-location-reveal a:focus-visible { outline: none; color: var(--accent); background: transparent; text-shadow: 0 0 22px rgba(var(--accent-rgb), 0.95); }
 
 .fog-bands { position: absolute; z-index: 5; right: -12%; bottom: 0; left: -12%; height: 29%; overflow: hidden; pointer-events: none; }
 .fog-bands i { position: absolute; left: -20%; width: 140%; height: 48%; border-radius: 50%; background: radial-gradient(ellipse, rgba(143, 192, 215, 0.18), transparent 64%); filter: blur(13px); animation: fogDrift 8s ease-in-out infinite alternate; }
@@ -590,7 +590,7 @@ body[data-active-view="location"] .error-state {
 .fog-bands i:nth-child(2) { bottom: 22%; animation-duration: 11s; animation-direction: alternate-reverse; opacity: 0.7; }
 .fog-bands i:nth-child(3) { bottom: -13%; animation-duration: 14s; opacity: 0.85; }
 
-.graveyard { position: absolute; z-index: 2; right: 4%; bottom: 3%; left: 4%; height: 22%; }
+.graveyard { position: absolute; z-index: 2; right: 4%; bottom: 3%; left: 4%; height: 22%; pointer-events: none; }
 .graveyard i { position: absolute; bottom: 0; width: 6%; height: 44%; border-radius: 48% 48% 5% 5%; background: #020405; box-shadow: 0 0 3px rgba(var(--accent-rgb), 0.3); }
 .graveyard i::after { content: ""; position: absolute; right: -40%; bottom: 0; left: -40%; height: 8px; border-radius: 50%; background: #020405; }
 .graveyard i:nth-child(1) { left: 5%; height: 53%; transform: rotate(-5deg); }
@@ -680,10 +680,10 @@ body[data-active-view="location"] .error-state {
   .portal-countdown { width: calc(100% - 12px); gap: 3px; }
   .portal-countdown strong { font-size: clamp(13px, 4vw, 18px); }
   .portal-countdown i { font-size: 11px; }
-  .portal-location-reveal { width: min(76%, 180px); }
+  .portal-location-reveal { width: min(82%, 190px); }
   .portal-location-reveal > strong { font-size: 17px; }
   .portal-location-reveal p { margin-bottom: 9px; font-size: 0.42rem; }
-  .portal-location-reveal a { min-height: 34px; font-size: 0.43rem; }
+  .portal-location-reveal a { min-height: 44px; font-size: 0.55rem; }
   .toast { bottom: 76px; }
 }
 
